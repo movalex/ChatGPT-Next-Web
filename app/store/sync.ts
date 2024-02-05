@@ -96,7 +96,7 @@ export const useSyncStore = createPersistStore(
         const localState = getLocalAppState();
         const providerConfig = get()[get().provider];
         const client = this.getClient();
-        const preferRemote = get().upstash.preferRemote;
+        const preferRemote = get().upstash.preferRemote || false;
         console.log("[Upstash] Prefer Remote Data status:", preferRemote);
 
         const remoteData = await client.get(providerConfig.username);
