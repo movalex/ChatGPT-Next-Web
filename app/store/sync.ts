@@ -36,6 +36,7 @@ const DEFAULT_SYNC_STATE = {
   },
 
   upstash: {
+    preferRemote: false,
     endpoint: "",
     username: STORAGE_KEY,
     apiKey: "",
@@ -93,20 +94,25 @@ export const useSyncStore = createPersistStore(
     async sync() {
       const localState = getLocalAppState();
       const provider = get().provider;
-      const config = get()[provider];
+      const providerConfig = get()[provider];
       const client = this.getClient();
+      const preferRemote = get().upstash.preferRemote;
+      console.log("[Upstash] Prefer Remote Data status: ", preferRemote);
 
       try {
         const remoteState = JSON.parse(
-          await client.get(config.username),
+          await client.get(providerConfig.username),
         ) as AppState;
-        mergeAppState(localState, remoteState);
-        setLocalAppState(localState);
+        if (!preferRemote) {
+          setLocalAppState(localState);
+          mergeAppState(localState, remoteState);
+          await client.set(providerConfig.username, JSON.stringify(localState));
+        } else {
+          setLocalAppState(remoteState);
+        }
       } catch (e) {
         console.log("[Sync] failed to get remote state", e);
       }
-
-      await client.set(config.username, JSON.stringify(localState));
 
       this.markSyncTime();
     },

@@ -214,6 +214,7 @@ const cn = {
         },
 
         UpStash: {
+          PreferRemote: "Prefer Remote Data",
           Endpoint: "UpStash Redis REST Url",
           UserName: "备份名称",
           Password: "UpStash Redis REST Token",

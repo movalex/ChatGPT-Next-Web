@@ -423,6 +423,18 @@ function SyncConfigModal(props: { onClose?: () => void }) {
 
         {syncStore.provider === ProviderType.UpStash && (
           <List>
+            <ListItem title={Locale.Settings.Sync.Config.UpStash.PreferRemote}>
+              <input
+                type="checkbox"
+                checked={syncStore.upstash.preferRemote}
+                onChange={(e) => {
+                  syncStore.update(
+                    (config) =>
+                      (config.upstash.preferRemote = e.currentTarget.checked),
+                  );
+                }}
+              ></input>
+            </ListItem>
             <ListItem title={Locale.Settings.Sync.Config.UpStash.Endpoint}>
               <input
                 type="text"
@@ -435,7 +447,6 @@ function SyncConfigModal(props: { onClose?: () => void }) {
                 }}
               ></input>
             </ListItem>
-
             <ListItem title={Locale.Settings.Sync.Config.UpStash.UserName}>
               <input
                 type="text"

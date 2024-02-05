@@ -217,6 +217,7 @@ const en: LocaleType = {
         },
 
         UpStash: {
+          PreferRemote: "Prefer Remote Data",
           Endpoint: "UpStash Redis REST Url",
           UserName: "Backup Name",
           Password: "UpStash Redis REST Token",
