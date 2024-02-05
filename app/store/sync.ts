@@ -76,7 +76,7 @@ export const useSyncStore = createPersistStore(
       try {
         const remoteState = JSON.parse(rawContent) as AppState;
         const localState = getLocalAppState();
-        mergeAppState(localState, remoteState);
+        mergeAppState(localState, remoteState, true);
         setLocalAppState(localState);
         location.reload();
       } catch (e) {
@@ -92,29 +92,37 @@ export const useSyncStore = createPersistStore(
     },
 
     async sync() {
-      const localState = getLocalAppState();
-      const provider = get().provider;
-      const providerConfig = get()[provider];
-      const client = this.getClient();
-      const preferRemote = get().upstash.preferRemote;
-      console.log("[Upstash] Prefer Remote Data status: ", preferRemote);
-
       try {
-        const remoteState = JSON.parse(
-          await client.get(providerConfig.username),
-        ) as AppState;
-        if (!preferRemote) {
-          setLocalAppState(localState);
-          mergeAppState(localState, remoteState);
+        const localState = getLocalAppState();
+        const providerConfig = get()[get().provider];
+        const client = this.getClient();
+        const preferRemote = get().upstash.preferRemote;
+        console.log("[Upstash] Prefer Remote Data status:", preferRemote);
+
+        const remoteData = await client.get(providerConfig.username);
+        const remoteState = remoteData ? JSON.parse(remoteData) : null;
+
+        if (!remoteState || Object.keys(remoteState).length === 0) {
+          console.log(
+            "[Sync] Remote state is empty. Creting new Redis key:",
+            providerConfig.username,
+          );
           await client.set(providerConfig.username, JSON.stringify(localState));
+          return;
+        }
+
+        mergeAppState(localState, remoteState, preferRemote);
+        if (!preferRemote) {
+          await client.set(providerConfig.username, JSON.stringify(localState));
+          setLocalAppState(localState);
         } else {
           setLocalAppState(remoteState);
         }
-      } catch (e) {
-        console.log("[Sync] failed to get remote state", e);
-      }
 
-      this.markSyncTime();
+        this.markSyncTime();
+      } catch (e) {
+        console.error("[Sync] Error during synchronization: ", e);
+      }
     },
 
     async check() {
