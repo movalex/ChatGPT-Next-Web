@@ -23,7 +23,7 @@ export function createUpstashClient(store: SyncStore) {
           headers: this.headers(),
           proxyUrl,
         });
-        console.log("[Upstash] check", res.status, res.statusText);
+        // console.log("[Upstash] check", res.status, res.statusText);
         return [200].includes(res.status);
       } catch (e) {
         console.error("[Upstash] failed to check", e);
@@ -38,7 +38,7 @@ export function createUpstashClient(store: SyncStore) {
         proxyUrl,
       });
 
-      console.log("[Upstash] get key = ", key, res.status, res.statusText);
+      // console.log("[Upstash] get key = ", key, res.status, res.statusText);
       const resJson = (await res.json()) as { result: string };
 
       return resJson.result;
@@ -52,7 +52,7 @@ export function createUpstashClient(store: SyncStore) {
         proxyUrl,
       });
 
-      console.log("[Upstash] set key = ", key, res.status, res.statusText);
+      // console.log("[Upstash] set key = ", key, res.status, res.statusText);
     },
 
     async get() {

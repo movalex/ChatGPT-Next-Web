@@ -44,7 +44,7 @@ export function corsFetch(
   };
 
   const corsUrl = proxyUrl + url;
-  console.info("[CORS] target = ", corsUrl);
+  // console.info("[CORS] target = ", corsUrl);
 
   return fetch(corsUrl, corsOptions);
 }
