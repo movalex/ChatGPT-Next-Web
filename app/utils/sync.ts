@@ -66,9 +66,8 @@ const MergeStates: StateMerger = {
   [StoreKey.Chat]: (primaryState, secondaryState) => {
     // Implement logic to merge primaryState into secondaryState
 
-    // Add or update sessions from secondaryState
     const primarySessions: Record<string, ChatSession> = {};
-    secondaryState.sessions.forEach((s) => (primarySessions[s.id] = s));
+    primaryState.sessions.forEach((s) => (primarySessions[s.id] = s));
 
     secondaryState.sessions.forEach((secondarySession) => {
       // skip empty chats
@@ -144,8 +143,8 @@ export function mergeAppState(
   preferRemote: boolean,
 ) {
   // Decide which state is considered 'primary' based on preferRemote flag
-  const primaryState = preferRemote ? stateB : stateA;
-  const secondaryState = preferRemote ? stateA : stateB;
+  const primaryState = preferRemote ? stateA : stateB;
+  const secondaryState = preferRemote ? stateB : stateA;
 
   // Proceed with merging if local state is not empty
 
