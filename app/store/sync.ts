@@ -109,18 +109,18 @@ export const useSyncStore = createPersistStore(
 
         if (!remoteState || Object.keys(remoteState).length === 0) {
           console.log(
-            "[Sync] Remote state is empty. Creating new Redis key:",
+            "[Sync] Remote state is empty. Creating new sync entry:",
             providerConfig.username,
           );
+          await client.set(providerConfig.username, JSON.stringify(localState));
           return;
         }
 
-        if (forceSync) {
-          await client.set(providerConfig.username, JSON.stringify(localState));
-        } else {
+        if (!forceSync) {
           mergeAppState(localState, remoteState);
         }
         setLocalAppState(localState);
+        await client.set(providerConfig.username, JSON.stringify(localState));
 
         this.markSyncTime();
       } catch (e) {
