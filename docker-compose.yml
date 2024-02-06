@@ -1,9 +1,9 @@
 version: "3.9"
 services:
-  chatgpt-next-web:
+  movalex-nextchat:
     profiles: [ "no-proxy" ]
-    container_name: chatgpt-next-web
-    image: yidadaa/chatgpt-next-web
+    container_name: movalex-nextchat
+    image: movalex/nextchat
     ports:
       - 3000:3000
     environment:
@@ -16,12 +16,12 @@ services:
       - DISABLE_GPT4=$DISABLE_GPT4
       - ENABLE_BALANCE_QUERY=$ENABLE_BALANCE_QUERY
       - DISABLE_FAST_LINK=$DISABLE_FAST_LINK
-      - OPENAI_SB=$OPENAI_SB
+      - NEXT_TELEMETRY_DISABLED=$NEXT_TELEMETRY_DISABLED
 
-  chatgpt-next-web-proxy:
+  movalex-nextchat-proxy:
     profiles: [ "proxy" ]
-    container_name: chatgpt-next-web-proxy
-    image: yidadaa/chatgpt-next-web
+    container_name: movalex-nextchat-proxy
+    image: movalex/nextchat
     ports:
       - 3000:3000
     environment:
@@ -34,5 +34,4 @@ services:
       - HIDE_USER_API_KEY=$HIDE_USER_API_KEY
       - DISABLE_GPT4=$DISABLE_GPT4
       - ENABLE_BALANCE_QUERY=$ENABLE_BALANCE_QUERY
-      - DISABLE_FAST_LINK=$DISABLE_FAST_LINK
-      - OPENAI_SB=$OPENAI_SB
+      - NEXT_TELEMETRY_DISABLED=$NEXT_TELEMETRY_DISABLED
