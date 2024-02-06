@@ -36,7 +36,7 @@ const DEFAULT_SYNC_STATE = {
   },
 
   upstash: {
-    preferRemote: false,
+    forceSync: false,
     endpoint: "",
     username: STORAGE_KEY,
     apiKey: "",
@@ -72,12 +72,17 @@ export const useSyncStore = createPersistStore(
 
     async import() {
       const rawContent = await readFromFile();
+      const forceSync = get().upstash.forceSync || false;
 
       try {
         const remoteState = JSON.parse(rawContent) as AppState;
         const localState = getLocalAppState();
-        mergeAppState(localState, remoteState, true);
-        setLocalAppState(localState);
+        if (forceSync) {
+          setLocalAppState(remoteState);
+        } else {
+          mergeAppState(localState, remoteState);
+          setLocalAppState(localState);
+        }
         location.reload();
       } catch (e) {
         console.error("[Import]", e);
@@ -92,13 +97,13 @@ export const useSyncStore = createPersistStore(
     },
 
     async sync() {
-      try {
-        const localState = getLocalAppState();
-        const providerConfig = get()[get().provider];
-        const client = this.getClient();
-        const preferRemote = get().upstash.preferRemote || false;
-        console.log("[Upstash] Prefer Remote Data status:", preferRemote);
+      const localState = getLocalAppState();
+      const providerConfig = get()[get().provider];
+      const client = this.getClient();
+      const forceSync = get().upstash.forceSync || false;
+      console.log("[Upstash] Force Sync status:", forceSync);
 
+      try {
         const remoteData = await client.get(providerConfig.username);
         const remoteState = remoteData ? JSON.parse(remoteData) : null;
 
@@ -107,11 +112,14 @@ export const useSyncStore = createPersistStore(
             "[Sync] Remote state is empty. Creating new Redis key:",
             providerConfig.username,
           );
-          await client.set(providerConfig.username, JSON.stringify(localState));
           return;
         }
 
-        mergeAppState(localState, remoteState, preferRemote);
+        if (forceSync) {
+          await client.set(providerConfig.username, JSON.stringify(localState));
+        } else {
+          mergeAppState(localState, remoteState);
+        }
         setLocalAppState(localState);
 
         this.markSyncTime();

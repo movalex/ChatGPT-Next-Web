@@ -53,8 +53,8 @@ export type AppState = {
 };
 
 type Merger<T extends keyof AppState, U = AppState[T]> = (
-  primaryState: U,
-  secondaryState: U,
+  localState: U,
+  remoteState: U,
 ) => U;
 
 type StateMerger = {
@@ -63,59 +63,56 @@ type StateMerger = {
 
 // we merge remote state to local state
 const MergeStates: StateMerger = {
-  [StoreKey.Chat]: (primaryState, secondaryState) => {
-    // Implement logic to merge primaryState into secondaryState
+  [StoreKey.Chat]: (localState, remoteState) => {
+    // merge sessions
+    const localSessions: Record<string, ChatSession> = {};
+    localState.sessions.forEach((s) => (localSessions[s.id] = s));
 
-    const primarySessions: Record<string, ChatSession> = {};
-    primaryState.sessions.forEach((s) => (primarySessions[s.id] = s));
-
-    secondaryState.sessions.forEach((secondarySession) => {
+    remoteState.sessions.forEach((remoteSession) => {
       // skip empty chats
-      if (secondarySession.messages.length === 0) return;
+      if (remoteSession.messages.length === 0) return;
 
-      const primarySession = primarySessions[secondarySession.id];
-      if (!primarySession) {
+      const localSession = localSessions[remoteSession.id];
+      if (!localSession) {
         // if remote session is new, just merge it
-        primaryState.sessions.push(secondarySession);
+        localState.sessions.push(remoteSession);
       } else {
         // if both have the same session id, merge the messages
-        const primaryMessageIds = new Set(
-          primarySession.messages.map((v) => v.id),
-        );
-        secondarySession.messages.forEach((m) => {
-          if (!primaryMessageIds.has(m.id)) {
-            primarySession.messages.push(m);
+        const localMessageIds = new Set(localSession.messages.map((v) => v.id));
+        remoteSession.messages.forEach((m) => {
+          if (!localMessageIds.has(m.id)) {
+            localSession.messages.push(m);
           }
         });
 
         // sort local messages with date field in asc order
-        primarySession.messages.sort(
+        localSession.messages.sort(
           (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
         );
       }
     });
 
     // sort local sessions with date field in desc order
-    primaryState.sessions.sort(
+    localState.sessions.sort(
       (a, b) =>
         new Date(b.lastUpdate).getTime() - new Date(a.lastUpdate).getTime(),
     );
 
-    return primaryState;
+    return localState;
   },
-  [StoreKey.Prompt]: (primaryState, secondaryState) => {
-    primaryState.prompts = {
-      ...secondaryState.prompts,
-      ...primaryState.prompts,
+  [StoreKey.Prompt]: (localState, remoteState) => {
+    localState.prompts = {
+      ...remoteState.prompts,
+      ...localState.prompts,
     };
-    return primaryState;
+    return localState;
   },
-  [StoreKey.Mask]: (primaryState, secondaryState) => {
-    primaryState.masks = {
-      ...secondaryState.masks,
-      ...primaryState.masks,
+  [StoreKey.Mask]: (localState, remoteState) => {
+    localState.masks = {
+      ...remoteState.masks,
+      ...localState.masks,
     };
-    return primaryState;
+    return localState;
   },
   [StoreKey.Config]: mergeWithUpdate<AppState[StoreKey.Config]>,
   [StoreKey.Access]: mergeWithUpdate<AppState[StoreKey.Access]>,
@@ -137,42 +134,32 @@ export function setLocalAppState(appState: AppState) {
   });
 }
 
-export function mergeAppState(
-  stateA: AppState,
-  stateB: AppState,
-  preferRemote: boolean,
-) {
-  // Decide which state is considered 'primary' based on preferRemote flag
-  const primaryState = preferRemote ? stateA : stateB;
-  const secondaryState = preferRemote ? stateB : stateA;
-
-  // Proceed with merging if local state is not empty
-
-  Object.keys(primaryState).forEach(<T extends keyof AppState>(k: string) => {
+export function mergeAppState(localState: AppState, remoteState: AppState) {
+  Object.keys(localState).forEach(<T extends keyof AppState>(k: string) => {
     const key = k as T;
-    const primaryStoreState = primaryState[key];
-    const secondaryStoreState = secondaryState[key];
-    MergeStates[key](primaryStoreState, secondaryStoreState);
+    const localStoreState = localState[key];
+    const remoteStoreState = remoteState[key];
+    MergeStates[key](localStoreState, remoteStoreState);
   });
-  // Now, secondaryState contains the merged state
-  return primaryState;
+
+  return localState;
 }
 
 /**
  * Merge state with `lastUpdateTime`, older state will be overridden
  */
 export function mergeWithUpdate<T extends { lastUpdateTime?: number }>(
-  primaryState: T,
-  secondaryState: T,
+  localState: T,
+  remoteState: T,
 ) {
-  const primaryUpdateTime = primaryState.lastUpdateTime ?? 0;
-  const secondaryUpdateTime = secondaryState.lastUpdateTime ?? 1;
+  const localUpdateTime = localState.lastUpdateTime ?? 0;
+  const remoteUpdateTime = remoteState.lastUpdateTime ?? 0;
 
-  if (primaryUpdateTime < secondaryUpdateTime) {
-    merge(secondaryState, primaryState);
-    return { ...secondaryState };
+  if (localUpdateTime < remoteUpdateTime) {
+    merge(remoteState, localState);
+    return { ...remoteState };
   } else {
-    merge(primaryState, secondaryState);
-    return { ...primaryState };
+    merge(localState, remoteState);
+    return { ...localState };
   }
 }
