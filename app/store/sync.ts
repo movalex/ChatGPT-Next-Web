@@ -112,12 +112,7 @@ export const useSyncStore = createPersistStore(
         }
 
         mergeAppState(localState, remoteState, preferRemote);
-        if (!preferRemote) {
-          await client.set(providerConfig.username, JSON.stringify(localState));
-          setLocalAppState(localState);
-        } else {
-          setLocalAppState(remoteState);
-        }
+        setLocalAppState(localState);
 
         this.markSyncTime();
       } catch (e) {
