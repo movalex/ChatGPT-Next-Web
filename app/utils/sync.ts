@@ -146,14 +146,14 @@ export function mergeAppState(localState: AppState, remoteState: AppState) {
 }
 
 /**
- * Merge state with `lastUpdateTime`, older state will be override
+ * Merge state with `lastUpdateTime`, older state will be overridden
  */
 export function mergeWithUpdate<T extends { lastUpdateTime?: number }>(
   localState: T,
   remoteState: T,
 ) {
   const localUpdateTime = localState.lastUpdateTime ?? 0;
-  const remoteUpdateTime = localState.lastUpdateTime ?? 1;
+  const remoteUpdateTime = remoteState.lastUpdateTime ?? 0;
 
   if (localUpdateTime < remoteUpdateTime) {
     merge(remoteState, localState);

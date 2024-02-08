@@ -213,6 +213,9 @@ const en: LocaleType = {
         },
 
         UpStash: {
+          ForceSync: "Force Sync Data",
+          ForceSyncSubtitle:
+            "Replace Remote data with Local on Sync and Local with Remote on Import",
           Endpoint: "UpStash Redis REST Url",
           UserName: "Backup Name",
           Password: "UpStash Redis REST Token",

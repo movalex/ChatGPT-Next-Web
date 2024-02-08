@@ -210,6 +210,9 @@ const cn = {
         },
 
         UpStash: {
+          ForceSync: "Force Sync Data",
+          ForceSyncSubtitle:
+            "Replace Remote data with Local on Sync and Local with Remote on Import",
           Endpoint: "UpStash Redis REST Url",
           UserName: "备份名称",
           Password: "UpStash Redis REST Token",
