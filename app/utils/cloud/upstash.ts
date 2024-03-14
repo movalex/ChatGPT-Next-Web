@@ -75,59 +75,6 @@ export function createUpstashClient(store: SyncStore) {
       await this.redisSet(chunkCountKey, index.toString());
     },
 
-    async redisDropDatabase() {
-      try {
-        // Fetch all keys with the application's prefix
-        const allKeys = await this.redisKeys(`${storeKey}*`);
-
-        // Delete each key
-        await Promise.all(allKeys.map((key) => this.redisDel(key)));
-
-        console.log("[Upstash] Database dropped successfully");
-      } catch (e) {
-        console.error("[Upstash] Error dropping database", e);
-      }
-    },
-
-    // Helper function to get all keys with a certain pattern
-    async redisKeys(pattern: string) {
-      const res = await corsFetch(this.path(`keys/${pattern}`), {
-        method: "GET",
-        headers: this.headers(),
-        proxyUrl,
-      });
-
-      if (res.status === 200) {
-        const resJson = (await res.json()) as { result: string[] };
-        return resJson.result;
-      } else {
-        console.error(
-          "[Upstash] Failed to retrieve keys",
-          res.status,
-          res.statusText,
-        );
-        return [];
-      }
-    },
-
-    // Helper function to delete a key
-    async redisDel(key: string) {
-      const res = await corsFetch(this.path(`del/${key}`), {
-        method: "POST",
-        headers: this.headers(),
-        proxyUrl,
-      });
-
-      if (res.status !== 200) {
-        console.error(
-          "[Upstash] Failed to delete key",
-          key,
-          res.status,
-          res.statusText,
-        );
-      }
-    },
-
     headers() {
       return {
         Authorization: `Bearer ${config.apiKey}`,
