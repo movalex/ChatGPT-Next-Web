@@ -4,6 +4,7 @@ services:
     profiles: [ "no-proxy" ]
     container_name: movalex-nextchat
     image: movalex/nextchat
+    restart: always
     ports:
       - 3000:3000
     environment:
